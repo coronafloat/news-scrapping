@@ -1,6 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
 import csv
+import csv
 
 response = requests.get('https://search.kompas.com/search?q=tarif+trump&type=article')
 BASE_URL = 'https://search.kompas.com/search?q=tarif+trump&type=article' #(WIP) pagination: scrap from next page
