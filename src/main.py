@@ -2,32 +2,55 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 
-response = requests.get('https://www.scrapethissite.com/pages/simple/')
+response = requests.get('https://search.kompas.com/search?q=tarif+trump&type=article')
+BASE_URL = 'https://search.kompas.com/search?q=tarif+trump&type=article' #(WIP) pagination: scrap from next page
+page=1 #(WIP) pagination: scrap from next page
 
-# print(response.status_code)
-# print(response.text)
+print(response.status_code)
 
-soup = BeautifulSoup(response.text, "html.parser")
+if response.status_code == 200:
+    soup = BeautifulSoup(response.text, "html.parser")
+    titleTotal = soup.find_all("div", class_="articleItem")
+    print(f"Number of News: {len(titleTotal)}\n\n")
 
-countryBlocks = soup.find_all("div", class_="col-md-4 country")
-print(f"Number of countries: {len(countryBlocks)}")
+    hitung=1
+    result = []
 
-result = []
-for blocks in countryBlocks:
-    nameElement = blocks.find("h3", class_="country-name")
-    countryName = nameElement.get_text(strip=True)
+    for items in titleTotal:
+        # Title
+        titleElement = items.find("h2", class_="articleTitle")
+        titleValue = titleElement.get_text(strip=True)
 
-    capitalElement = blocks.find("span", class_="country-capital")
-    capitalName = capitalElement.get_text(strip=True)
-    result.append({"name": countryName, "capital": capitalName })
+        # Isi / Content
+        isiElement = items.find("div", class_="articleLead")
+        isiValue = isiElement.get_text(strip=True)
 
-print(f"jumlah result: {len(result)}")
+        # Date
+        dateElement = items.find("div", class_="articlePost")
+        dateValue = dateElement.get_text(strip=True)
+        
+        # Tag
+        tagElement = items.find("div", class_="articlePost-subtitle")
+        tagValue = tagElement.get_text(strip=True)
 
-with open("data.csv", "w", newline="", encoding="utf-8") as csvfile:
-    fieldNames = ["name", "capital"]
-    writer = csv.DictWriter(csvfile, fieldnames=["name","capital"])
 
-    writer.writeheader()
+        # Result akan berisi array yang diisi object yang isinya data dari berita untuk dimasukkan csv nantinya
+        result.append(
+            {
+                "Judul Berita": titleValue,
+                "Isi Berita": isiValue,
+                "Tanggal Berita": dateValue,
+                "Tag Berita": tagValue,
+            }
+        )
 
-    for items in result:
-        writer.writerow(items)
+        # Debug
+        print(f"judul ke {hitung}: {titleValue}")
+        print(f"isi ke {hitung}: {isiValue}")
+        print(f"tanggal ke {hitung}: {dateValue}")
+        print(f"tag ke {hitung}: {tagValue}")
+        print("\n")
+        hitung+=1
+
+else:
+    print(f"Failed to srapping with status code {response.status_code}")
